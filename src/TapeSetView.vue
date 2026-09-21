@@ -154,12 +154,6 @@ async function onDrop(event: DragEvent): Promise<void> {
 
 <style scoped>
 .tape-set-view {
-  --ink: #e9e4d8;
-  --paper: #14171c;
-  --paper-raised: #1b1f26;
-  --rule: #2c313a;
-  --amber-strong: #e0a83e;
-  --error: #e26d5c;
   position: relative;
   display: flex;
   flex-direction: column;

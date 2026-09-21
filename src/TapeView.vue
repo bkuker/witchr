@@ -210,12 +210,6 @@ onMounted(autoGrowTextarea);
 
 <style scoped>
 .tape-view {
-  --ink: #e9e4d8;
-  --paper: #14171c;
-  --paper-raised: #1b1f26;
-  --rule: #2c313a;
-  --amber: rgba(224, 168, 62, 0.28);
-  --amber-strong: #e0a83e;
   font-family: "IBM Plex Mono", "SFMono-Regular", Menlo, Consolas, monospace;
   color: var(--ink);
   background: var(--paper);
