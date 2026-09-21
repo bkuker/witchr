@@ -1,39 +1,29 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { allMoods, greet, Mood } from '@lib/greeting'
+import { Tape } from "@lib/Tape";
+import TapeView from './TapeView.vue';
+import TapeSetView from './TapeSetView.vue';
 
-const name = ref('world')
-const mood = ref<Mood>(Mood.Cheerful)
-
-const message = computed(() => greet({ name: name.value, mood: mood.value }))
 </script>
 
 <template>
   <main>
-    <h1>{{ message }}</h1>
-
-    <label>
-      Name
-      <input v-model="name" />
-    </label>
-
-    <label>
-      Mood
-      <select v-model="mood">
-        <option v-for="m in allMoods" :key="m" :value="m">{{ m }}</option>
-      </select>
-    </label>
-
-    <p class="hint">
-      The same <code>greet()</code> runs on the command line:
-      <code>npm run hello -- Ada pirate</code>
-    </p>
+    <TapeSetView />
   </main>
 </template>
 
 <style scoped>
+html {
+  box-sizing: border-box;
+}
+
+*,
+*:before,
+*:after {
+  box-sizing: inherit;
+}
+
 main {
-  max-width: 32rem;
   margin: 4rem auto;
   padding: 0 1rem;
   font-family: system-ui, sans-serif;

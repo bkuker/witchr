@@ -9,6 +9,7 @@
     "module": "preserve",
     "moduleResolution": "bundler",
     "verbatimModuleSyntax": true,
+    "noUncheckedIndexedAccess": false,
 
     "types": ["node"],
 

@@ -9,6 +9,7 @@
     "module": "preserve",
     "moduleResolution": "bundler",
     "verbatimModuleSyntax": true,
+    "noUncheckedIndexedAccess": false,
 
     "lib": ["ES2023"],
     "types": [],
