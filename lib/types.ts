@@ -10,7 +10,12 @@ type IntRange<F extends number, T extends number> = Exclude<Enumerate<T>, Enumer
 
 export type Address = IntRange<0, 100>;
 
-export type Layout = IntRange<1, 10>;
+export type Layout = IntRange<0, 10>;
+
+export function toAddress(v: string): Address {
+  const a = Number.parseInt(v);
+  return a as Address;
+}
 
 export function fail(message: string): never {
   throw new RangeError(message);

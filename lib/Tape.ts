@@ -53,6 +53,15 @@ export class Tape {
     return this.position === undefined ? undefined : this.lines[this.position];
   }
 
+  search(block: number): void {
+    let count = 0;
+    const needle = `[${block}]`;
+    while (this.current()?.trim() != needle) {
+      this.advance();
+      count++;
+      if (count > 1000) throw "Block not found";
+    }
+  }
   /**
    * Move to the next line. At the end, a Straight tape runs off (`position`
    * becomes `undefined`) and a Looped tape wraps back to the first line.

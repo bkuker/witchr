@@ -35,23 +35,13 @@
 import { computed, nextTick, onMounted, reactive, ref, shallowRef, toRaw, watch } from "vue";
 import { Tape, TapeMode } from "@lib/Tape";
 
-const model = defineModel<Tape>({ required: true });
-
-// Tape has no private members, so reactive()/ref() see its whole shape —
-// no Vue-typing workaround needed here.
-const tape = shallowRef(reactive(model.value));
+const tape = defineModel<Tape>({ required: true });
 
 watch(
-  () => model.value,
-  (newTape) => {
-    // Compare raw objects: model.value may or may not come back wrapped in a
-    // reactive proxy, and a false "different tape" here would resync the
-    // textarea mid-keystroke.
-    if (toRaw(newTape) !== toRaw(tape.value)) {
-      tape.value = reactive(newTape);
-      syncEditText();
-      nextTick(scrollToCurrentLine);
-    }
+  () => [tape.value, tape.value.position],
+  () => {
+    syncEditText();
+    nextTick(scrollToCurrentLine);
   },
 );
 
@@ -72,7 +62,7 @@ function editTextOf(t: Tape): string {
 // mid-keystroke. It's resynced only when the editable window changes for
 // reasons OTHER than the user's own typing: advancing, resetting, or the
 // whole tape being swapped out from outside.
-const rawText = ref(editTextOf(model.value));
+const rawText = ref(editTextOf(tape.value));
 
 /**
  * The textarea's lines up to and including its first non-blank one — that
@@ -103,8 +93,8 @@ function onInput(event: Event): void {
   const rebuilt = new Tape([...tape.value.lines.slice(0, start), ...value.split(/\r?\n/)], tape.value.mode);
   rebuilt.position = rebuilt.lines.length > start ? start : undefined;
 
-  tape.value = reactive(rebuilt);
-  model.value = rebuilt;
+  //tape.value = reactive(rebuilt);
+  tape.value = rebuilt;
 }
 
 function setMode(mode: TapeMode): void {
@@ -164,10 +154,12 @@ onMounted(autoGrowTextarea);
   <div class="tape-view">
     <div class="toolbar">
       <div class="mode-toggle" role="radiogroup" aria-label="Tape mode">
-        <button type="button" title="Straight" :class="{ active: tape.mode === TapeMode.Straight }" @click="setMode(TapeMode.Straight)">
+        <button type="button" title="Straight" :class="{ active: tape.mode === TapeMode.Straight }"
+          @click="setMode(TapeMode.Straight)">
           ↓
         </button>
-        <button type="button" title="Looped" :class="{ active: tape.mode === TapeMode.Looped }" @click="setMode(TapeMode.Looped)">⟳</button>
+        <button type="button" title="Looped" :class="{ active: tape.mode === TapeMode.Looped }"
+          @click="setMode(TapeMode.Looped)">⟳</button>
       </div>
     </div>
 
@@ -175,19 +167,13 @@ onMounted(autoGrowTextarea);
       <div v-for="(line, i) in pastLines" :key="i" class="line past">{{ line || "\u00A0" }}</div>
       <div class="tape-text">
         <div v-if="ghostLines.length" ref="highlightEl" class="ghost" aria-hidden="true">
-          <div v-for="(line, i) in ghostLines" :key="i" class="ghost-line" :class="{ current: i === ghostLines.length - 1 }">
+          <div v-for="(line, i) in ghostLines" :key="i" class="ghost-line"
+            :class="{ current: i === ghostLines.length - 1 }">
             {{ line }}
           </div>
         </div>
-        <textarea
-          ref="inputEl"
-          class="tape-input"
-          rows="1"
-          spellcheck="false"
-          :placeholder="tape.lines.length === 0 ? 'Type to add tape' : undefined"
-          :value="rawText"
-          @input="onInput"
-        />
+        <textarea ref="inputEl" class="tape-input" rows="1" spellcheck="false"
+          :placeholder="tape.lines.length === 0 ? 'Type to add tape' : undefined" :value="rawText" @input="onInput" />
       </div>
     </div>
 

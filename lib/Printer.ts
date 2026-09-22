@@ -1,22 +1,51 @@
 import { fail, checkInt, type Address, type Layout } from "./types";
 
 export class Printer {
-  // --- Printer's mechanical last-character latch (I.11). ---
-  private _printerLatch: string | undefined;
+  text = "";
 
-  /** The last character fed to the printer; re-printed when off and re-fed. */
-  get printerLatch(): string | undefined {
-    return this._printerLatch;
-  }
-
-  set printerLatch(value: string) {
-    if (typeof value !== "string" || value.length !== 1) {
-      fail(`printerLatch must be a single character, got ${JSON.stringify(value)}`);
+  print(val: number, layout: Layout): void {
+    let txt = "";
+    switch (layout) {
+      case 3:
+        txt = eight(val) + "     ";
+        break;
+      case 4:
+        txt = eight(val) + "\n";
+        break;
+      case 5:
+        txt = eight(val) + "\n\n";
+        break;
+      case 6:
+        txt = six(val) + "      ";
+        break;
+      case 7:
+        txt = six(val) + "     ";
+        break;
+      case 8:
+        txt = six(val) + "\n";
+        break;
+      case 9:
+        txt = six(val) + "\n\n";
+        break;
+      case 0:
+        txt = "\n\n\n\n\n";
     }
-    this._printerLatch = value;
-  }
 
-  clearPrinterLatch(): void {
-    this._printerLatch = undefined;
+    this.text += txt;
   }
+}
+
+function eight(v: number): string {
+  let n = v.toString().padStart(8, "0");
+  let r = n.slice(0, 1) + "." + n.slice(1);
+  let s = v >= 0 ? "+" : "-";
+  return s + r;
+}
+
+function six(v: number): string {
+  let n = v.toString().padStart(8, "0");
+  n = n.substring(0, 7);
+  let r = n.slice(0, 1) + "." + n.slice(1);
+  let s = v >= 0 ? "+" : "-";
+  return s + r;
 }

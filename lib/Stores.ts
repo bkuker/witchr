@@ -22,9 +22,6 @@ export class Stores {
       }
       this.stores.push(group);
     }
-
-    this.write(57, 99999991);
-    this.write(67, -99999991);
   }
 
   reset(): void {

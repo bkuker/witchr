@@ -15,15 +15,12 @@
  * The array of tapes is exposed as `tapes` for the parent (e.g. the
  * emulator) to read.
  */
-import { computed, ref } from "vue";
+import { computed, ref, triggerRef } from "vue";
 import type { Tape } from "@lib/Tape";
 import { TapeSet } from "@lib/TapeSet";
 import TapeView from "./TapeView.vue";
 
-// A fresh TapeSet is TAPE_COUNT empty tapes, so the count comes from there.
-const tapes = ref<Tape[]>(new TapeSet().tapes);
-
-defineExpose({ tapes });
+const tapeSet = defineModel<TapeSet>({ required: true });
 
 const status = ref<{ ok: boolean; text: string } | null>(null);
 
@@ -43,7 +40,8 @@ function loadText(text: string, source: string): void {
     return;
   }
 
-  tapes.value = set.tapes;
+  tapeSet.value = set;
+
   status.value = {
     ok: true,
     text: `Loaded ${source}: ${withData.length === 1 ? "tape" : "tapes"} ${withData.join(", ")}.`,
@@ -122,18 +120,12 @@ async function onDrop(event: DragEvent): Promise<void> {
 </script>
 
 <template>
-  <div
-    class="tape-set-view"
-    :class="{ dragging: isDragging }"
-    @dragenter="onDragEnter"
-    @dragover="onDragOver"
-    @dragleave="onDragLeave"
-    @drop="onDrop"
-  >
+  <div class="tape-set-view" :class="{ dragging: isDragging }" @dragenter="onDragEnter" @dragover="onDragOver"
+    @dragleave="onDragLeave" @drop="onDrop">
     <div class="tapes">
-      <div v-for="(_, i) in tapes" :key="i" class="tape-slot">
+      <div v-for="(_, i) in tapeSet.tapes" :key="i" class="tape-slot">
         <h3>Tape {{ i + 1 }}</h3>
-        <TapeView v-model="tapes[i]" />
+        <TapeView v-model="tapeSet.tapes[i]" />
       </div>
     </div>
 
@@ -142,12 +134,8 @@ async function onDrop(event: DragEvent): Promise<void> {
         <button type="button" class="primary" @click="fileInput?.click()">Upload,</button>
         <span class="hint">drag, or</span>
         <input ref="fileInput" type="file" hidden @change="onFilePicked" />
-        <textarea
-          class="paste"
-          rows="1"
-          placeholder="Paste a file here."
-          @paste.prevent="(e: ClipboardEvent) => loadText(e.clipboardData?.getData('text') || '', 'pasted text')"
-        />
+        <textarea class="paste" rows="1" placeholder="Paste a file here."
+          @paste.prevent="(e: ClipboardEvent) => loadText(e.clipboardData?.getData('text') || '', 'pasted text')" />
 
         <p v-if="status" class="status" :class="{ error: !status.ok }" role="status">{{ status.text }}</p>
       </div>

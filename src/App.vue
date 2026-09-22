@@ -1,30 +1,15 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
-import { Tape } from "@lib/Tape";
-import TapeView from "./TapeView.vue";
-import TapeSetView from "./TapeSetView.vue";
-import StoresView from "./StoresView.vue";
-import PrinterOutput from "./PrinterOutput.vue";
+import { computed, ref, shallowRef, type Ref } from "vue";
+import { Witch } from "@lib/WITCH";
+import WitchView from "./WitchView.vue";
 
-let printout = ref(`
-  +2.0000000
-  +2.5000000
-  +2.6666667
-  +2.7083334
-  +2.7166667
-  +2.7180556
-  +2.7182540
-  +2.7182788
-  +2.7182816`);
+const witch = ref(new Witch()) as Ref<Witch>;
+
 </script>
 
 <template>
   <main>
-    <h1>W.I.T.C.H.🧙‍♀️</h1>
-    <h2>Wolverhampton Instrument for Teaching Computing from Harwell</h2>
-    <PrinterOutput v-model="printout" />
-    <TapeSetView />
-    <StoresView />
+    <WitchView v-model="witch" />
   </main>
 </template>
 
@@ -57,7 +42,7 @@ html {
 
 <style scoped>
 main {
-  margin: 4rem auto;
+  margin: 1rem auto;
   padding: 0 1rem;
   line-height: 1.5;
 }

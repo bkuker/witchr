@@ -1,4 +1,10 @@
-import { fail, checkInt, type Address, type Layout } from "./types";
+import { Accumulator } from "./Accumulator";
+import { Console } from "./Console";
+import { Printer } from "./Printer";
+import { Stores } from "./Stores";
+import { TapeSet } from "./TapeSet";
+import { Timer } from "./Timer";
+import { fail, checkInt, type Address, type Layout, toAddress } from "./types";
 
 export type SignDigit = "0" | "9";
 
@@ -28,17 +34,24 @@ export enum RunStatus {
 const ORDER_PATTERN = /^\d{5}$/;
 
 export class Witch {
+  tapes: TapeSet = new TapeSet();
+  readonly accumulator: Accumulator = new Accumulator();
+  readonly timer: Timer = new Timer();
+  readonly stores: Stores = new Stores();
+  readonly console: Console = new Console();
+  readonly printer1: Printer = new Printer();
+
   currentOrder: number; // --- Current order (the block most recently fetched into control). ---
   orderSource: Address; // --- Order source: which reader or store is supplying orders (I.9). ---
-  signTest: boolean | null = null; // --- Sign test flag (I.8): null until the first 011/012 order runs. ---
+  signTest: boolean = false; // --- Sign test flag (I.8): null until the first 011/012 order runs. ---
 
   shift: Shift = Shift.B; // --- Shift (I.12): pending, consumed by the next 1/3/7 order. ---
-  layout: Layout | undefined; // --- Print/punch layout (I.11): must be set before any output. ---
+  layout: Layout = 1; // --- Print/punch layout (I.11): must be set before any output. ---
 
   private _delayedAlarmLives = 3; /** Delayed-alarm restarts remaining before it escalates to Normal Alarm. */
   private static readonly MAX_DELAYED_ALARM_LIVES = 3;
 
-  status: RunStatus = RunStatus.STOPPED; // --- Run status. ---
+  status: RunStatus = RunStatus.RUNNING; // --- Run status. ---
 
   // --- Finish / Signal / Alarm lamps (I.13, II.1). ---
   finish = false;
@@ -46,11 +59,163 @@ export class Witch {
   alarm = false;
   alarmMode: AlarmMode = AlarmMode.NORMAL; // --- Alarm-key mode and the delayed-alarm restart count (II.2(d)). ---
 
+  step(): void {
+    if (this.status != RunStatus.RUNNING) return;
+
+    const o = this.currentOrderString;
+
+    if (o.startsWith("0")) {
+      //Control
+      if (o == "00000") {
+        //NOOP
+      } else if (o == "00100") {
+        //FINISH
+        this.finish = true;
+        this.restoreDelayedAlarmLives();
+        if (!this.console.passFinish) {
+          this.status = RunStatus.STOPPED;
+        }
+      } else if (o == "00200") {
+        this.signal = true;
+        if (!this.console.passSignal) {
+          this.status = RunStatus.STOPPED;
+        }
+      } else if (o.startsWith("01")) {
+        //SIGN TEST TODO
+        const addr = toAddress(o.slice(-2));
+        const val = this.read(addr);
+        if (o.startsWith("011")) {
+          this.signTest = val > 0;
+        } else if (o.startsWith("012")) {
+          this.signTest = val < 0;
+        } else {
+          //TODO ERROR
+        }
+      } else if (o.startsWith("02")) {
+        //TRANSFER CONTROL
+        const addr = toAddress(o.slice(-2));
+        if (o.startsWith("021")) {
+          this.orderSource = addr;
+        } else if (o.startsWith("022")) {
+          if (this.signTest) this.orderSource = addr;
+        } else {
+          //TODO ERROR
+        }
+      } else if (o.startsWith("03") || (o.startsWith("05") && this.signTest)) {
+        //SEARCH BLOCK TODO
+        const reader = toAddress(o.slice(-2));
+        const block = Number.parseInt(o.charAt(2));
+        this.tapes.tapes[reader - 1].search(block);
+      } else if (o.startsWith("07")) {
+        //SET LAYOUT
+        this.layout = Number.parseInt(o.charAt(2)) as Layout;
+      } else if (o.startsWith("08")) {
+        //SET SHIFT
+      }
+    } else {
+      //Arithmetic
+      const order = Number.parseInt(o.charAt(0));
+      const ss = toAddress(o.substring(1, 3));
+      const rr = toAddress(o.substring(3, 5));
+      switch (order) {
+        case 1:
+        case 2:
+          this.add(rr, this.read(ss));
+          if (order == 2) this.clear(ss);
+          break;
+        case 3:
+        case 4:
+          this.add(rr, -this.read(ss));
+          if (order == 4) this.clear(ss);
+          break;
+        case 5:
+          this.add(9, this.read(ss) * this.read(rr));
+          this.clear(rr);
+          break;
+      }
+    }
+
+    this.currentOrder = this.read(this.orderSource);
+
+    if (this.orderSource >= 10) {
+      this.orderSource++;
+    }
+  }
+
+  clear(address: Address) {
+    switch (address) {
+      case 0:
+      case 1:
+      case 2: //Perferator 1
+      case 3: //Printer 2
+      case 4: //Perferator 2
+      case 5: //spare
+      case 6: //spare
+      case 7: //spare
+      case 8:
+      //TODO
+      case 9:
+        this.accumulator.value = 0;
+        break;
+      default:
+        this.stores.write(address, 0);
+        break;
+    }
+  }
+
+  //TODO Make it ADD and do a clear function
+  add(address: Address, value: number) {
+    switch (address) {
+      case 0:
+        break; //Drain
+      case 1:
+        this.printer1.print(value, this.layout);
+        break;
+      case 2: //Perferator 1
+      case 3: //Printer 2
+      case 4: //Perferator 2
+      case 5: //spare
+      case 6: //spare
+      case 7: //spare
+        break;
+      case 8:
+      //TODO
+      case 9:
+        this.accumulator.value += value;
+        break;
+      default:
+        this.stores.write(address, this.stores.read(address) + value);
+        break;
+    }
+  }
+
+  read(address: Address): number {
+    if (address == 0) {
+      return 0;
+    } else if (address >= 1 && address <= 4) {
+      const tape = this.tapes.tapes[this.orderSource - 1];
+      tape.advance();
+      return Number.parseInt(tape.current() ?? "0");
+    } else if (address < 8) {
+      throw "Read from spare tape";
+    } else if (address == 8) {
+      return this.accumulator.low7;
+    } else if (address == 9) {
+      return this.accumulator.value;
+    } else {
+      return this.stores.read(address);
+    }
+  }
+
   /** Read the pending shift and reset it to B, as happens after it is used. */
   consumeShift(): Shift {
     const shift = this.shift;
     this.shift = Shift.B;
     return shift;
+  }
+
+  get currentOrderString(): string {
+    return this.currentOrder.toString().padStart(5, "0");
   }
 
   get delayedAlarmLives(): number {
