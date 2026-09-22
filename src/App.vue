@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref } from "vue";
 import { Tape } from "@lib/Tape";
-import TapeView from './TapeView.vue';
-import TapeSetView from './TapeSetView.vue';
-import StoresView from './StoresView.vue';
-import PrinterOutput from './PrinterOutput.vue';
+import TapeView from "./TapeView.vue";
+import TapeSetView from "./TapeSetView.vue";
+import StoresView from "./StoresView.vue";
+import PrinterOutput from "./PrinterOutput.vue";
 
 let printout = ref(`
   +2.0000000

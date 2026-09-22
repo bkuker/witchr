@@ -6,14 +6,14 @@
     "source.fixAll.eslint": "explicit"
   },
   "files.exclude": {
-    "**/.git": false,
-    "**/.svn": false,
-    "**/.hg": false,
-    "tsconfig*": false,
-    ".*": false,
-    "node_modules": false,
-    "eslint.config.js": false,
-    "package-lock.json": false,
-    "LICENSE.txt": false
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "tsconfig*": true,
+    ".*": true,
+    "node_modules": true,
+    "eslint.config.js": true,
+    "package-lock.json": true,
+    "LICENSE.txt": true
   }
 }

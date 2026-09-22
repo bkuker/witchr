@@ -4,8 +4,8 @@ export const STORES_PER_GROUP = 10;
 function validateAddress(a: number) {
   if (!Number.isInteger(a)) throw `${a} is an invalid store address, not an integer.`;
   if (a < 10 || a > 99) throw `${a} is an invalid store address, out of bounds.`;
-  let group = Math.floor(a / 10);
-  let store = a % 10;
+  const group = Math.floor(a / 10);
+  const store = a % 10;
   if (group > GROUP_COUNT) throw `Store ${a} is not present, no group ${group}.`;
   if (store >= STORES_PER_GROUP) throw `Store ${a} is not present, store not in group ${group}.`;
 }
@@ -16,7 +16,7 @@ export class Stores {
   constructor() {
     this.stores = [];
     for (let i = 0; i < GROUP_COUNT; i++) {
-      let group = [];
+      const group = [];
       for (let j = 0; j < STORES_PER_GROUP; j++) {
         group.push(0);
       }

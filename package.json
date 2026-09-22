@@ -12,6 +12,7 @@
     "preview": "vite preview",
     "type-check": "vue-tsc --build",
     "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "hello": "tsx --tsconfig tsconfig.scripts.json scripts/hello.ts"
   },

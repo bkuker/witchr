@@ -115,16 +115,21 @@ async function onDrop(event: DragEvent): Promise<void> {
   if (files.length > 1) {
     status.value = {
       ok: true,
-      text: `Only the first of ${files.length} dropped files was loaded.`
+      text: `Only the first of ${files.length} dropped files was loaded.`,
     };
   }
 }
 </script>
 
 <template>
-  <div class="tape-set-view" :class="{ dragging: isDragging }" @dragenter="onDragEnter" @dragover="onDragOver"
-    @dragleave="onDragLeave" @drop="onDrop">
-
+  <div
+    class="tape-set-view"
+    :class="{ dragging: isDragging }"
+    @dragenter="onDragEnter"
+    @dragover="onDragOver"
+    @dragleave="onDragLeave"
+    @drop="onDrop"
+  >
     <div class="tapes">
       <div v-for="(_, i) in tapes" :key="i" class="tape-slot">
         <h3>Tape {{ i + 1 }}</h3>
@@ -132,20 +137,20 @@ async function onDrop(event: DragEvent): Promise<void> {
       </div>
     </div>
 
-
     <section class="loader">
       <div class="upload-row">
-        <button type="button" class="primary" @click="fileInput?.click()">Upload, </button>
+        <button type="button" class="primary" @click="fileInput?.click()">Upload,</button>
         <span class="hint">drag, or</span>
         <input ref="fileInput" type="file" hidden @change="onFilePicked" />
-        <textarea class="paste" rows="1" placeholder="Paste a file here."
-          @paste.prevent="(e: ClipboardEvent) => loadText(e.clipboardData?.getData('text') || '', 'pasted text')" />
+        <textarea
+          class="paste"
+          rows="1"
+          placeholder="Paste a file here."
+          @paste.prevent="(e: ClipboardEvent) => loadText(e.clipboardData?.getData('text') || '', 'pasted text')"
+        />
 
         <p v-if="status" class="status" :class="{ error: !status.ok }" role="status">{{ status.text }}</p>
       </div>
-
-
-
     </section>
 
     <div v-if="isDragging" class="drop-overlay">Drop file to load</div>
@@ -197,7 +202,6 @@ textarea.paste {
   resize: none;
   width: 12em;
 }
-
 
 textarea.paste:focus {
   outline: none;

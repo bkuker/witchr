@@ -164,14 +164,10 @@ onMounted(autoGrowTextarea);
   <div class="tape-view">
     <div class="toolbar">
       <div class="mode-toggle" role="radiogroup" aria-label="Tape mode">
-        <button type="button" title="Straight" :class="{ active: tape.mode === TapeMode.Straight }"
-          @click="setMode(TapeMode.Straight)">
+        <button type="button" title="Straight" :class="{ active: tape.mode === TapeMode.Straight }" @click="setMode(TapeMode.Straight)">
           ↓
         </button>
-        <button type="button" title="Looped" :class="{ active: tape.mode === TapeMode.Looped }"
-          @click="setMode(TapeMode.Looped)">
-          ⟳
-        </button>
+        <button type="button" title="Looped" :class="{ active: tape.mode === TapeMode.Looped }" @click="setMode(TapeMode.Looped)">⟳</button>
       </div>
     </div>
 
@@ -179,17 +175,23 @@ onMounted(autoGrowTextarea);
       <div v-for="(line, i) in pastLines" :key="i" class="line past">{{ line || "\u00A0" }}</div>
       <div class="tape-text">
         <div v-if="ghostLines.length" ref="highlightEl" class="ghost" aria-hidden="true">
-          <div v-for="(line, i) in ghostLines" :key="i" class="ghost-line"
-            :class="{ current: i === ghostLines.length - 1 }">{{ line }}</div>
+          <div v-for="(line, i) in ghostLines" :key="i" class="ghost-line" :class="{ current: i === ghostLines.length - 1 }">
+            {{ line }}
+          </div>
         </div>
-        <textarea ref="inputEl" class="tape-input" rows="1" spellcheck="false"
-          :placeholder="tape.lines.length === 0 ? 'Type to add tape' : undefined" :value="rawText" @input="onInput" />
+        <textarea
+          ref="inputEl"
+          class="tape-input"
+          rows="1"
+          spellcheck="false"
+          :placeholder="tape.lines.length === 0 ? 'Type to add tape' : undefined"
+          :value="rawText"
+          @input="onInput"
+        />
       </div>
     </div>
 
     <div class="toolbar">
-
-
       <div class="transport">
         <button type="button" title="reset" @click="reset">⏮</button>
         <!--<button type="button" title="advanced" @click="advance">⏵</button>-->
@@ -200,12 +202,8 @@ onMounted(autoGrowTextarea);
         <template v-else-if="tape.lines.length === 0">empty tape</template>
         <template v-else>— end of tape —</template>
       </div>
-
     </div>
-
   </div>
-
-
 </template>
 
 <style scoped>
