@@ -1,9 +1,10 @@
 import { fail, checkInt, type Address, type Layout } from "./types";
+import { Word } from "./word";
 
 export class Printer {
   text = "";
 
-  print(val: number, layout: Layout): void {
+  print(val: Word, layout: Layout): void {
     let txt = "";
     switch (layout) {
       case 3:
@@ -35,17 +36,10 @@ export class Printer {
   }
 }
 
-function eight(v: number): string {
-  let n = v.toString().padStart(8, "0");
-  let r = n.slice(0, 1) + "." + n.slice(1);
-  let s = v >= 0 ? "+" : "-";
-  return s + r;
+function eight(v: Word): string {
+  return v.toString().substring(0, 11);
 }
 
-function six(v: number): string {
-  let n = v.toString().padStart(8, "0");
-  n = n.substring(0, 7);
-  let r = n.slice(0, 1) + "." + n.slice(1);
-  let s = v >= 0 ? "+" : "-";
-  return s + r;
+function six(v: Word): string {
+  return v.toString().substring(0, 9);
 }

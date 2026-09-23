@@ -1,3 +1,6 @@
+import { Word } from "./word";
+import { type Address } from "./types";
+
 export const GROUP_COUNT = 9;
 export const STORES_PER_GROUP = 10;
 
@@ -11,14 +14,14 @@ function validateAddress(a: number) {
 }
 
 export class Stores {
-  readonly stores: number[][];
+  readonly stores: Word[][];
 
   constructor() {
     this.stores = [];
     for (let i = 0; i < GROUP_COUNT; i++) {
       const group = [];
       for (let j = 0; j < STORES_PER_GROUP; j++) {
-        group.push(0);
+        group.push(Word.zero());
       }
       this.stores.push(group);
     }
@@ -27,17 +30,23 @@ export class Stores {
   reset(): void {
     for (let i = 0; i < GROUP_COUNT; i++) {
       for (let j = 0; j < STORES_PER_GROUP; j++) {
-        this.stores[i][j] = 0;
+        this.stores[i][j] = Word.zero();
       }
     }
   }
 
-  read(address: number): number {
+  read(address: Address): Word {
     validateAddress(address);
     return this.stores[Math.floor(address / 10) - 1][address % 10];
   }
 
-  write(address: number, value: number): void {
+  clear(address: Address): void {
+    validateAddress(address);
+    this.stores[Math.floor(address / 10) - 1][address % 10] = Word.zero();
+  }
+
+  write(address: Address, value: Word): void {
+    validateAddress(address);
     this.stores[Math.floor(address / 10) - 1][address % 10] = value;
   }
 }

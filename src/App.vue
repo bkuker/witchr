@@ -26,7 +26,7 @@ html {
 html {
   font-family: "IBM Plex Mono", "SFMono-Regular", Menlo, Consolas, monospace;
   color: var(--ink);
-  background-color: #111;
+  background-color: #000;
 }
 
 html {
@@ -43,7 +43,10 @@ html {
 <style scoped>
 main {
   margin: 1rem auto;
-  padding: 0 1rem;
+  padding: 1rem;
   line-height: 1.5;
+  width: 1500px;
+  background-color: #111;
+  border-radius: 10px;
 }
 </style>

@@ -5,6 +5,7 @@ import { Stores } from "./Stores";
 import { TapeSet } from "./TapeSet";
 import { Timer } from "./Timer";
 import { fail, checkInt, type Address, type Layout, toAddress } from "./types";
+import { Word, DWord, multiply, divide } from "./word";
 
 export type SignDigit = "0" | "9";
 
@@ -41,7 +42,7 @@ export class Witch {
   readonly console: Console = new Console();
   readonly printer1: Printer = new Printer();
 
-  currentOrder: number; // --- Current order (the block most recently fetched into control). ---
+  currentOrder: Word; // --- Current order (the block most recently fetched into control). ---
   orderSource: Address; // --- Order source: which reader or store is supplying orders (I.9). ---
   signTest: boolean = false; // --- Sign test flag (I.8): null until the first 011/012 order runs. ---
 
@@ -85,9 +86,9 @@ export class Witch {
         const addr = toAddress(o.slice(-2));
         const val = this.read(addr);
         if (o.startsWith("011")) {
-          this.signTest = val > 0;
+          this.signTest = !val.isNegative;
         } else if (o.startsWith("012")) {
-          this.signTest = val < 0;
+          this.signTest = val.isNegative;
         } else {
           //TODO ERROR
         }
@@ -125,13 +126,20 @@ export class Witch {
           break;
         case 3:
         case 4:
-          this.add(rr, -this.read(ss));
+          this.add(rr, this.read(ss).negate());
           if (order == 4) this.clear(ss);
           break;
         case 5:
-          this.add(9, this.read(ss) * this.read(rr));
-          this.clear(rr);
+          //TODO Check Overflow
+          let mr = multiply(this.accumulator.value, this.read(ss), this.read(rr));
+          this.accumulator.value = mr.accumulator;
+          this.stores.write(rr, mr.multiplier);
           break;
+        case 6:
+          let dr = divide(this.accumulator.value, this.read(ss));
+          this.accumulator.value = dr.remainder;
+          this.stores.write(rr, dr.quotient);
+        //TODO check overflow
       }
     }
 
@@ -155,16 +163,16 @@ export class Witch {
       case 8:
       //TODO
       case 9:
-        this.accumulator.value = 0;
+        this.accumulator.clear();
         break;
       default:
-        this.stores.write(address, 0);
+        this.stores.clear(address);
         break;
     }
   }
 
   //TODO Make it ADD and do a clear function
-  add(address: Address, value: number) {
+  add(address: Address, value: Word) {
     switch (address) {
       case 0:
         break; //Drain
@@ -181,27 +189,30 @@ export class Witch {
       case 8:
       //TODO
       case 9:
-        this.accumulator.value += value;
+        this.accumulator.add(value);
         break;
       default:
-        this.stores.write(address, this.stores.read(address) + value);
+        let ar = this.stores.read(address).add(value);
+        this.stores.write(address, ar.result);
         break;
     }
   }
 
-  read(address: Address): number {
+  read(address: Address): Word {
     if (address == 0) {
-      return 0;
+      return Word.zero();
     } else if (address >= 1 && address <= 4) {
       const tape = this.tapes.tapes[this.orderSource - 1];
       tape.advance();
-      return Number.parseInt(tape.current() ?? "0");
+      let s = tape.current() ?? "0";
+      if (/^\[\d\]$/.test(s)) tape.advance();
+      return Word.fromString(tape.current() ?? "0");
     } else if (address < 8) {
       throw "Read from spare tape";
     } else if (address == 8) {
-      return this.accumulator.low7;
+      return this.accumulator.value.low;
     } else if (address == 9) {
-      return this.accumulator.value;
+      return this.accumulator.value.high;
     } else {
       return this.stores.read(address);
     }
@@ -215,7 +226,7 @@ export class Witch {
   }
 
   get currentOrderString(): string {
-    return this.currentOrder.toString().padStart(5, "0");
+    return this.currentOrder.magnitudeDigits.slice(0, 5).join("");
   }
 
   get delayedAlarmLives(): number {
@@ -251,7 +262,7 @@ export class Witch {
     // for block 1, then transfer control to reader 01. Everything else
     // (accumulator, stores) is "unwanted (but probably not random)" on real
     // hardware (III.14); this model starts it at a deterministic zero instead.
-    this.currentOrder = 3101;
+    this.currentOrder = Word.fromParts("0", "03101000");
     this.orderSource = 1;
   }
 }
