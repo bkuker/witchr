@@ -45,6 +45,7 @@ async function run() {
             Current Order: <input size="4" v-model.lazy="witch.currentOrderString" />
             Order Source <input size="1" v-model.lazy="witch.orderSource" />
             Layout <input size="1" v-model.lazy="witch.layout" />
+            Shift <input size="1" v-model.lazy="witch.shift" />
             <button @click="witch.step">Step</button>
             <button @click="run">Run</button>
         </div>

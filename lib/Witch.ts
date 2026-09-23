@@ -82,7 +82,7 @@ export class Witch {
           this.status = RunStatus.STOPPED;
         }
       } else if (o.startsWith("01")) {
-        //SIGN TEST TODO
+        //SIGN TEST
         const addr = toAddress(o.slice(-2));
         const val = this.read(addr);
         if (o.startsWith("011")) {
@@ -103,7 +103,7 @@ export class Witch {
           //TODO ERROR
         }
       } else if (o.startsWith("03") || (o.startsWith("05") && this.signTest)) {
-        //SEARCH BLOCK TODO
+        //SEARCH BLOCK
         const reader = toAddress(o.slice(-2));
         const block = Number.parseInt(o.charAt(2));
         this.tapes.tapes[reader - 1].search(block);
@@ -112,6 +112,7 @@ export class Witch {
         this.layout = Number.parseInt(o.charAt(2)) as Layout;
       } else if (o.startsWith("08")) {
         //SET SHIFT
+        this.shift = Number.parseInt(o.charAt(2)) as Shift;
       }
     } else {
       //Arithmetic
@@ -189,10 +190,10 @@ export class Witch {
       case 8:
       //TODO
       case 9:
-        this.accumulator.add(value);
+        this.accumulator.add(value, this.consumeShiftAsExponent());
         break;
       default:
-        let ar = this.stores.read(address).add(value);
+        let ar = this.stores.read(address).add(value, this.consumeShiftAsExponent());
         this.stores.write(address, ar.result);
         break;
     }
@@ -219,10 +220,13 @@ export class Witch {
   }
 
   /** Read the pending shift and reset it to B, as happens after it is used. */
-  consumeShift(): Shift {
+  consumeShiftAsExponent(): number {
     const shift = this.shift;
     this.shift = Shift.B;
-    return shift;
+
+    let n = shift as number;
+    n = shift - 2;
+    return n;
   }
 
   get currentOrderString(): string {

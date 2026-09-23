@@ -7,7 +7,7 @@ export class Accumulator {
     this.value = DWord.zero();
   }
 
-  add(val: Word) {
+  add(val: Word, shift: number = 0) {
     //TODO Overflow Check?
     this.value = this.value.addWord(val).result;
   }
