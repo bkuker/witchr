@@ -46,22 +46,4 @@ main {
   padding: 0 1rem;
   line-height: 1.5;
 }
-
-label {
-  display: block;
-  margin-bottom: 1rem;
-}
-
-input,
-select {
-  display: block;
-  margin-top: 0.25rem;
-  padding: 0.4rem 0.6rem;
-  font: inherit;
-}
-
-.hint {
-  color: #555;
-  font-size: 0.9rem;
-}
 </style>

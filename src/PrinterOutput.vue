@@ -5,7 +5,7 @@ const model = defineModel<string>({ required: true });
 </script>
 <template>
   <div>
-    <textarea cols="80" rows="20" readonly="true">{{ model }}</textarea>
+    <textarea cols="80" rows="34" readonly="true">{{ model }}</textarea>
   </div>
 </template>
 <style scoped>
@@ -20,7 +20,9 @@ const model = defineModel<string>({ required: true });
 
 textarea {
   font-family: Pica10BTRoman, monospace;
-  background-color: rgb(254, 248, 242);
+  font-weight: bold;
+  padding: 20px;
+  background-color: rgb(206, 196, 187);
   overflow-x: hidden;
   overflow-y: scroll;
 }

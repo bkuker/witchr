@@ -225,25 +225,7 @@ onMounted(autoGrowTextarea);
   font-weight: bold;
 }
 
-.toolbar button {
-  font: inherit;
-  color: var(--ink);
-  background: transparent;
-  border: 1px solid var(--rule);
-  border-radius: 4px;
-  padding: 0.25rem 0.6rem;
-  cursor: pointer;
-}
 
-.toolbar button:hover {
-  border-color: var(--amber-strong);
-}
-
-.toolbar button.active {
-  background: var(--amber-strong);
-  border-color: var(--amber-strong);
-  color: #1a1200;
-}
 
 .status {
   margin-left: auto;

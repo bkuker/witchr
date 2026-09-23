@@ -197,28 +197,7 @@ textarea.paste:focus {
 }
 
 .loader button {
-  font: inherit;
-  color: var(--ink);
-  background: transparent;
-  border: 1px solid var(--rule);
-  border-radius: 4px;
   padding: 0.3rem 0.8rem;
-  cursor: pointer;
-}
-
-.loader button:hover:not(:disabled) {
-  border-color: var(--amber-strong);
-}
-
-.loader button:disabled {
-  opacity: 0.4;
-  cursor: default;
-}
-
-.loader button.primary {
-  background: var(--amber-strong);
-  border-color: var(--amber-strong);
-  color: #1a1200;
 }
 
 .status {

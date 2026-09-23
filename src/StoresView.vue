@@ -57,12 +57,7 @@ th {
 }
 
 input {
-  font-family: monospace;
   width: 12ch;
   text-align: right;
-
-  color: var(--ink);
-  background: var(--paper-raised);
-  border: 1px solid var(--rule);
 }
 </style>
