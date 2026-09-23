@@ -185,6 +185,11 @@ abstract class DigitValue {
 
   protected constructor(digits: readonly Digit[]) {
     this.digits = Object.freeze([...digits]);
+    for (let d of this.digits) {
+      if (isNaN(d)) {
+        throw "NaN detected in DigitValue";
+      }
+    }
   }
 
   /** The sign digit: '0' (+) or '9' (-). */
@@ -248,11 +253,14 @@ export class Word extends DigitValue {
   static readonly WIDTH = 9; // sign + 8 magnitude digits (I.4)
 
   private constructor(digits: readonly Digit[]) {
+    if (digits.length != Word.WIDTH) {
+      throw "Invalid Word length";
+    }
     super(digits);
   }
 
   static fromString(s: string) {
-    return new Word(parseString(Word.WIDTH, s));
+    return new Word(parseString(Word.WIDTH - 1, s));
   }
 
   static fromDigits(digits: readonly number[]): Word {
@@ -287,11 +295,14 @@ export class DWord extends DigitValue {
   static readonly WIDTH = 16; // sign + 15 magnitude digits — the accumulator (I.4's "09")
 
   private constructor(digits: readonly Digit[]) {
+    if (digits.length != DWord.WIDTH) {
+      throw "Invalid DWord length";
+    }
     super(digits);
   }
 
   static fromString(s: string) {
-    return new DWord(parseString(DWord.WIDTH, s));
+    return new DWord(parseString(DWord.WIDTH - 1, s));
   }
 
   static fromDigits(digits: readonly number[]): DWord {

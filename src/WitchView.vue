@@ -12,7 +12,7 @@ async function run() {
     witch.value.status = RunStatus.RUNNING
     while (witch.value.status == RunStatus.RUNNING) {
         witch.value.step();
-        await new Promise(resolve => setTimeout(resolve, 250));
+        await new Promise(resolve => setTimeout(resolve, 100));
     }
 }
 
