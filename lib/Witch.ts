@@ -229,6 +229,10 @@ export class Witch {
     return this.currentOrder.magnitudeDigits.slice(0, 5).join("");
   }
 
+  set currentOrderString(v: string) {
+    this.currentOrder = Word.fromString(v);
+  }
+
   get delayedAlarmLives(): number {
     return this._delayedAlarmLives;
   }

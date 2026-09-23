@@ -41,10 +41,10 @@ async function run() {
             <lamp color="#ff0000" :value="!witch.signTest" />
         </div>
         <div class="controls">
-            Acc: <input size="16" v-model="witch.accumulator.asString" />
-            Current Order: <input size="4" v-model="witch.currentOrderString" />
-            Order Source <input size="1" v-model="witch.orderSource" />
-            Layout <input size="1" v-model="witch.layout" />
+            Acc: <input size="16" v-model.lazy="witch.accumulator.asString" />
+            Current Order: <input size="4" v-model.lazy="witch.currentOrderString" />
+            Order Source <input size="1" v-model.lazy="witch.orderSource" />
+            Layout <input size="1" v-model.lazy="witch.layout" />
             <button @click="witch.step">Step</button>
             <button @click="run">Run</button>
         </div>
