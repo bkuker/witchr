@@ -12,8 +12,12 @@ async function run() {
     witch.value.status = RunStatus.RUNNING
     while (witch.value.status == RunStatus.RUNNING) {
         witch.value.step();
-        await new Promise(resolve => setTimeout(resolve, 100));
+        //await new Promise(resolve => setTimeout(resolve, 100));
     }
+}
+
+function stop() {
+    witch.value.status = RunStatus.STOPPED;
 }
 
 </script>
@@ -42,12 +46,12 @@ async function run() {
         </div>
         <div class="controls">
             Acc: <input size="16" v-model.lazy="witch.accumulator.asString" />
-            Current Order: <input size="4" v-model.lazy="witch.currentOrderString" />
-            Order Source <input size="1" v-model.lazy="witch.orderSource" />
+            Current Order: {{ witch.currentOrderSource }}:<input size="4" v-model.lazy="witch.currentOrderString" />
             Layout <input size="1" v-model.lazy="witch.layout" />
             Shift <input size="1" v-model.lazy="witch.shift" />
-            <button @click="witch.step">Step</button>
-            <button @click="run">Run</button>
+            <button @click="witch.step">↷ Step</button>
+            <button @click="run">▶ Run</button>
+            <button @click="stop">⏹ Stop</button>
         </div>
         <StoresView class="stores" v-model="witch.stores" />
     </div>
@@ -62,6 +66,10 @@ button {
     padding: 0.25rem 0.6rem;
     cursor: pointer;
     background: var(--paper-raised);
+}
+
+.controls button {
+    margin-left: 1em;
 }
 
 button:hover {

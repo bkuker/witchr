@@ -46,7 +46,7 @@ function loadText(text: string, source: string): void {
       }
     }
   }
-  status.value = { ok: false, text: `Loading stores from ${source} isn't implemented yet.` };
+  status.value = { ok: true, text: `Loading memory image from ${source}.` };
 
 }
 

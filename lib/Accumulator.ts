@@ -9,7 +9,7 @@ export class Accumulator {
 
   add(val: Word, shift: number = 0) {
     //TODO Overflow Check?
-    this.value = this.value.addWord(val).result;
+    this.value = this.value.addWord(val, shift).result;
   }
 
   get asString(): string {

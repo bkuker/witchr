@@ -1,28 +1,3 @@
-/**
- * Word / DWord — the machine's two fixed-point decimal value types.
- *
- * A Word is a general store's contents: sign digit + 8 magnitude digits
- * (I.1, I.4). A DWord is the accumulator: sign digit + 15 magnitude digits
- * (I.1, I.4's "09" row). Both are immutable — every operation returns a new
- * value rather than mutating in place. The mutable Store/Accumulator classes
- * that hold one of these are a separate, later piece.
- *
- * Negative numbers use 9's-complement digits (each digit d -> 9-d, sign
- * digit included) with an end-around carry for addition/subtraction — see
- * `ripple` below for the derivation. Section references are to the manual
- * (Wolv-Manual.pdf), "Notes on Programming and Operating", 2nd edition.
- *
- * Scope, per your request: Word, DWord, add, negate, multiply, divide.
- * Not included yet, deliberately: the address-08/09 accessors (splitting a
- * DWord into its "last 7 digits" view). I started to bolt that on as a
- * Word-shaped `lowWord()` and stopped — those 7 digits plus a sign are only
- * 8 characters, one short of a Word's 9, and the manual's own "x 10^8"
- * rescaling note for printing it (I.4) suggests it isn't meant to be read
- * as an ordinary Word at all. Rather than invent a padding convention I'm
- * not sure about, I'm leaving it for a follow-up once we've looked at it
- * properly.
- */
-
 /** A digit position's value, 0-9. */
 export type Digit = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 
@@ -130,6 +105,18 @@ function parseDigits(width: number, digits: readonly number[], label: string): D
   return digits as Digit[];
 }
 
+/**
+ * Build from a sign digit and a LITERAL magnitude digit string — this is a
+ * raw constructor, same level as `parseDigits`/`fromDigits`: it does not
+ * interpret "sign + magnitude" as a mathematical value and complement it.
+ * The caller must already supply whatever digits belong at each position of
+ * the final internal (9's-complement) representation. This is deliberate —
+ * `zero()` below relies on it (repeating the sign digit as magnitude is
+ * only correct as a *raw* digit array, not as a true-value magnitude) — but
+ * it means `fromParts("9", "21000000")` is NOT "-1.21"; for a real negative
+ * value from ordinary decimal notation, use `fromString` instead, which
+ * does the complementing.
+ */
 function parseParts(width: number, sign: SignDigit, magnitude: string, label: string): Digit[] {
   // SignDigit already restricts this at the type level for in-TS callers,
   // but this is a public entry point (JSON, a JS caller, an `as` cast could
@@ -144,6 +131,20 @@ function parseParts(width: number, sign: SignDigit, magnitude: string, label: st
   return [Number(sign) as Digit, ...[...magnitude].map((c) => Number(c) as Digit)];
 }
 
+/**
+ * Parse a human-written value ("-3.14", "3.14", "31415927", "*31415") into
+ * the machine's true internal (9's-complement) digit array.
+ *
+ * Unlike `parseParts`, this DOES interpret its input as a mathematical
+ * value: it first builds the positive-sign digit array for the value's true
+ * magnitude, then — if the value is negative — runs the WHOLE array
+ * (sign digit included) through `complement()`, exactly the way the real
+ * machine's own subtract-to-negate hardware works (see the file-level
+ * comment and the -1.21 = 987899999 example at `DWord.embed`). Building a
+ * negative Word this way and negating a positive Word built the same way
+ * always agree, and `x.add(x.negate()).result.isZero` is always true —
+ * neither held before this fix.
+ */
 function parseString(width: number, s: string): Digit[] {
   let negative = false;
   let digitString: string;
@@ -167,11 +168,13 @@ function parseString(width: number, s: string): Digit[] {
     throw new Error(`Value "${s}" exceeds width ${width}`);
   }
 
-  return [
-    negative ? 9 : 0, //
+  const positiveDigits = [
+    0, //
     ...digitString.split("").map(Number), //
     ...Array(width - digitString.length).fill(0), //
-  ];
+  ] as Digit[];
+
+  return negative ? (complement(positiveDigits) as Digit[]) : positiveDigits;
 }
 
 /**
@@ -202,10 +205,11 @@ abstract class DigitValue {
   }
 
   toString(): string {
+    const d = this.isNegative ? (complement(this.digits) as Digit[]) : this.digits;
     let ret = this.isNegative ? "-" : "+";
-    ret += this.digits[1];
+    ret += d[1];
     ret += ".";
-    ret += this.digits.slice(2).join("");
+    ret += d.slice(2).join("");
     return ret;
   }
 
@@ -267,7 +271,14 @@ export class Word extends DigitValue {
     return new Word(parseDigits(Word.WIDTH, digits, "Word"));
   }
 
-  /** Build from a sign and the 8 magnitude digits, e.g. `Word.fromParts("0", "12100000")` for 1.21. */
+  /**
+   * Build from a sign and the 8 magnitude digits, e.g.
+   * `Word.fromParts("0", "12100000")` for 1.21. Raw constructor — see the
+   * note on `parseParts` above: for a negative value, `magnitude` must
+   * already be the complemented digit string (e.g. "8789999" for the
+   * magnitude part of -1.21's "987899999"), not "21000000" with sign "9".
+   * Prefer `fromString` unless you specifically need this raw form.
+   */
   static fromParts(sign: SignDigit, magnitude: string): Word {
     return new Word(parseParts(Word.WIDTH, sign, magnitude, "Word"));
   }
@@ -309,6 +320,7 @@ export class DWord extends DigitValue {
     return new DWord(parseDigits(DWord.WIDTH, digits, "DWord"));
   }
 
+  /** Raw constructor — see the note on `Word.fromParts`; the same caveat about pre-complemented magnitude applies here. */
   static fromParts(sign: SignDigit, magnitude: string): DWord {
     return new DWord(parseParts(DWord.WIDTH, sign, magnitude, "DWord"));
   }
@@ -317,14 +329,22 @@ export class DWord extends DigitValue {
     return DWord.fromParts(sign, sign.repeat(DWord.WIDTH - 1));
   }
 
+  /**
+   * First 8 digits of the accumulator (sign + first 8 magnitude digits),
+   * i.e. address 09 used as a print/output source (I.4's exceptions table:
+   * "09 -> 01-04: Printing out first 8 digits of accumulator"). This is
+   * exactly a Word-shaped view, so it round-trips cleanly.
+   */
   get high(): Word {
     return Word.fromDigits(this.digits.slice(0, 9));
   }
 
   get low(): Word {
+    const fill = this.digits[0] === 9 ? 9 : 0; // neutral pad in the TRUE value, not literal 0
     return Word.fromDigits([
-      this.digits[0], //Sign Digits
-      ...this.digits.slice(0, 16), //Last seven
+      this.digits[0], // sign
+      ...this.digits.slice(9, 16), // last seven magnitude digits (indices 9-15)
+      fill,
     ]);
   }
 

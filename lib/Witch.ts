@@ -43,6 +43,8 @@ export class Witch {
   readonly printer1: Printer = new Printer();
 
   currentOrder: Word; // --- Current order (the block most recently fetched into control). ---
+  currentOrderSource: Address; // Where the current Order was loaded from
+
   orderSource: Address; // --- Order source: which reader or store is supplying orders (I.9). ---
   signTest: boolean = false; // --- Sign test flag (I.8): null until the first 011/012 order runs. ---
 
@@ -145,6 +147,7 @@ export class Witch {
     }
 
     this.currentOrder = this.read(this.orderSource);
+    this.currentOrderSource = this.orderSource;
 
     if (this.orderSource >= 10) {
       this.orderSource++;
@@ -225,7 +228,7 @@ export class Witch {
     this.shift = Shift.B;
 
     let n = shift as number;
-    n = shift - 2;
+    n = 2 - shift;
     return n;
   }
 
@@ -271,6 +274,7 @@ export class Witch {
     // (accumulator, stores) is "unwanted (but probably not random)" on real
     // hardware (III.14); this model starts it at a deterministic zero instead.
     this.currentOrder = Word.fromParts("0", "03101000");
+    this.currentOrderSource = 0;
     this.orderSource = 1;
   }
 }
