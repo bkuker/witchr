@@ -2,6 +2,7 @@ import { Accumulator } from "./Accumulator";
 import { Console } from "./Console";
 import { Printer } from "./Printer";
 import { Stores } from "./Stores";
+import { Order } from "./Tape";
 import { TapeSet } from "./TapeSet";
 import { Timer } from "./Timer";
 import { fail, checkInt, type Address, type Layout, toAddress } from "./types";
@@ -42,7 +43,7 @@ export class Witch {
   readonly console: Console = new Console();
   readonly printer1: Printer = new Printer();
 
-  currentOrder: Word; // --- Current order (the block most recently fetched into control). ---
+  currentOrder: Order; // --- Current order (the block most recently fetched into control). ---
   currentOrderSource: Address; // Where the current Order was loaded from
 
   orderSource: Address; // --- Order source: which reader or store is supplying orders (I.9). ---
@@ -146,7 +147,7 @@ export class Witch {
       }
     }
 
-    this.currentOrder = this.read(this.orderSource);
+    this.currentOrder = this.readOrder(this.orderSource);
     this.currentOrderSource = this.orderSource;
 
     if (this.orderSource >= 10) {
@@ -202,15 +203,33 @@ export class Witch {
     }
   }
 
+  readOrder(address: Address): Order {
+    if (address >= 1 && address <= 4) {
+      const tape = this.tapes.tapes[this.orderSource - 1];
+      tape.advance();
+      let w = tape.current();
+      if (!(w instanceof Order)) {
+        throw "Read non Order from tape";
+      }
+      return w;
+    } else if (address >= 10 && address <= 99) {
+      return new Order(this.stores.read(address));
+    } else {
+      throw `Tried to read order from bad address ${address}`;
+    }
+  }
+
   read(address: Address): Word {
     if (address == 0) {
       return Word.zero();
     } else if (address >= 1 && address <= 4) {
       const tape = this.tapes.tapes[this.orderSource - 1];
       tape.advance();
-      let s = tape.current() ?? "0";
-      if (/^\[\d\]$/.test(s)) tape.advance();
-      return Word.fromString(tape.current() ?? "0");
+      let w = tape.current();
+      if (!(w instanceof Word)) {
+        throw "Read non word from tape";
+      }
+      return w;
     } else if (address < 8) {
       throw "Read from spare tape";
     } else if (address == 8) {
@@ -233,11 +252,11 @@ export class Witch {
   }
 
   get currentOrderString(): string {
-    return this.currentOrder.magnitudeDigits.slice(0, 5).join("");
+    return this.currentOrder.toString();
   }
 
   set currentOrderString(v: string) {
-    this.currentOrder = Word.fromString(v);
+    this.currentOrder = Order.fromString(v);
   }
 
   get delayedAlarmLives(): number {
@@ -273,7 +292,7 @@ export class Witch {
     // for block 1, then transfer control to reader 01. Everything else
     // (accumulator, stores) is "unwanted (but probably not random)" on real
     // hardware (III.14); this model starts it at a deterministic zero instead.
-    this.currentOrder = Word.fromParts("0", "03101000");
+    this.currentOrder = Order.fromString("03101");
     this.currentOrderSource = 0;
     this.orderSource = 1;
   }

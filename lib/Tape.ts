@@ -1,9 +1,33 @@
+import { Word, type Digit } from "./word";
+
+export class Order {
+  word: Word;
+  constructor(word: Word) {
+    this.word = word;
+  }
+
+  static fromString(str: string) {
+    return new Order(Word.fromString(str));
+  }
+
+  toString(): string {
+    return this.word.magnitudeDigits.slice(0, 5).join("");
+  }
+}
+
 /** What a tape reader does when it reaches the end of its tape. */
 export enum TapeMode {
   /** Runs off the end: after the last line there is nothing left to read. */
   Straight,
   /** Ends are joined: after the last line it wraps back to the first. */
   Looped,
+}
+
+export class BlockMarker {
+  num: Digit;
+  constructor(num: Digit) {
+    this.num = num;
+  }
 }
 
 /**
@@ -45,21 +69,41 @@ export class Tape {
     this.position = this.lines.length > 0 ? 0 : undefined;
   }
 
+  private currentValue(): Word | Order | BlockMarker | undefined {
+    let str = this.position === undefined ? undefined : this.lines[this.position];
+    if (str === undefined) return undefined;
+
+    if (str.startsWith("+") || str.startsWith("-") || str.startsWith("*")) {
+      return Word.fromString(str);
+    } else if (/^\[\d\]$/.test(str)) {
+      return new BlockMarker(parseInt(str[1]) as Digit);
+    } else if (/^\d{5}$/.test(str)) {
+      return new Order(Word.fromString(str));
+    } else {
+      throw `Read bad data from tape ${str}`;
+    }
+  }
+
   /**
    * The line under the reader, or `undefined` if there isn't one (an empty
    * tape, or a Straight tape that has run out).
    */
-  current(): string | undefined {
-    return this.position === undefined ? undefined : this.lines[this.position];
+  current(): Word | Order | undefined {
+    if (this.currentValue() instanceof BlockMarker) this.advance(); //Block markers treated as spaces when not searching
+
+    let cv = this.currentValue();
+    if (cv instanceof BlockMarker) throw "Two block markers in a row.";
+    return cv;
   }
 
   search(block: number): void {
     let count = 0;
     const needle = `[${block}]`;
-    while (this.current()?.trim() != needle) {
+    while (true) {
+      let cv = this.currentValue();
+      if (cv instanceof BlockMarker && cv.num == block) return;
       this.advance();
-      count++;
-      if (count > 1000) throw "Block not found";
+      if (count++ > 1000) throw "Block not found";
     }
   }
   /**
