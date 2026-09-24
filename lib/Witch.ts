@@ -33,7 +33,7 @@ export enum RunStatus {
   STOPPED,
 }
 
-const ORDER_PATTERN = /^\d{5}$/;
+const RANDOM_ONE = Word.fromString("+0.0000001");
 
 export class Witch {
   tapes: TapeSet = new TapeSet();
@@ -144,6 +144,11 @@ export class Witch {
           this.accumulator.value = dr.remainder;
           this.stores.write(rr, dr.quotient);
         //TODO check overflow
+        case 7:
+          // Positive Modulus
+          let s = this.read(ss);
+          if (s.isNegative) s = s.negate();
+          this.add(rr, s);
       }
     }
 
@@ -166,7 +171,7 @@ export class Witch {
       case 6: //spare
       case 7: //spare
       case 8:
-      //TODO
+        this.accumulator.clear();
       case 9:
         this.accumulator.clear();
         break;
@@ -192,7 +197,8 @@ export class Witch {
       case 7: //spare
         break;
       case 8:
-      //TODO
+        this.accumulator.add(value, this.consumeShiftAsExponent() - 8);
+        break;
       case 9:
         this.accumulator.add(value, this.consumeShiftAsExponent());
         break;
@@ -221,7 +227,7 @@ export class Witch {
 
   read(address: Address): Word {
     if (address == 0) {
-      return Word.zero();
+      return Math.random() < 0.5 ? Word.zero() : RANDOM_ONE;
     } else if (address >= 1 && address <= 4) {
       const tape = this.tapes.tapes[this.orderSource - 1];
       tape.advance();

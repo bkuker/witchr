@@ -12,7 +12,7 @@ async function run() {
     witch.value.status = RunStatus.RUNNING
     while (witch.value.status == RunStatus.RUNNING) {
         witch.value.step();
-        //await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 100));
     }
 }
 
@@ -47,8 +47,8 @@ function stop() {
         <div class="controls">
             Acc: <input size="16" v-model.lazy="witch.accumulator.asString" />
             Current Order: {{ witch.currentOrderSource }}:<input size="4" v-model.lazy="witch.currentOrderString" />
-            Layout <input size="1" v-model.lazy="witch.layout" />
-            Shift <input size="1" v-model.lazy="witch.shift" />
+            Layout <input size="1" v-model.lazy.number="witch.layout" />
+            Shift <input size="1" v-model.lazy.number="witch.shift" />
             <button @click="witch.step">↷ Step</button>
             <button @click="run">▶ Run</button>
             <button @click="stop">⏹ Stop</button>

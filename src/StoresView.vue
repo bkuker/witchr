@@ -29,25 +29,28 @@ function setValue(group: number, store: number, e: Event) {
  * `stores`, the way TapeSetView.loadText does for tapes. Stubbed for now.
  */
 function loadText(text: string, source: string): void {
-  for (let line of text.split("\n")) {
-    line = line.trim();
-    if (/^\d{2}\s/.test(line)) {
-      let split = line.split(/\s+/);
-      if (split.length >= 2) {
-        let addr = toAddress(split[0]);
-        try {
-          let word = Word.fromString(split[1]);
-          stores.value.write(addr, word);
-        } catch (e) {
-          //Probably OK
-          console.log(line, e);
+  try {
+    for (let line of text.split("\n")) {
+      line = line.trim();
+      if (/^\d{2}\s/.test(line)) {
+        let split = line.split(/\s+/);
+        if (split.length >= 2) {
+          let addr = toAddress(split[0]);
+          try {
+            let word = Word.fromString(split[1]);
+            stores.value.write(addr, word);
+          } catch (e) {
+            //Probably OK
+            stores.value.write(addr, Word.zero());
+            console.warn(`Loaded 0 to address ${addr} for line "${line}""`);
+          }
         }
-
       }
     }
+    status.value = { ok: true, text: `Loaded memory image from ${source}.` };
+  } catch (e) {
+    status.value = { ok: false, text: `Error loading memory image from ${source}.` };
   }
-  status.value = { ok: true, text: `Loading memory image from ${source}.` };
-
 }
 
 </script>
