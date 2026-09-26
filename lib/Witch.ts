@@ -151,7 +151,8 @@ export class Witch {
           let dr = divide(this.accumulator.value, this.read(ss));
           this.accumulator.value = dr.remainder;
           this.stores.write(rr, dr.quotient);
-        //TODO check overflow
+          //TODO check overflow
+          break;
         case 7:
           // Positive Modulus
           let s = this.read(ss);
