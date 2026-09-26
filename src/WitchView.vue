@@ -8,11 +8,21 @@ import Lamp from "./Lamp.vue";
 
 const witch = defineModel<Witch>({ required: true });
 
+const speed = ref(1);
+
 async function run() {
-    witch.value.status = RunStatus.RUNNING
+    witch.value.status = RunStatus.RUNNING;
+    let count = 0;
     while (witch.value.status == RunStatus.RUNNING) {
+        count++;
         witch.value.step();
-        await new Promise(resolve => setTimeout(resolve, 10));
+        if (speed.value == 100) {
+            if (count % 500 == 0) {
+                await new Promise(resolve => setTimeout(resolve, 0));
+            }
+        } else {
+            await new Promise(resolve => setTimeout(resolve, 1500 / speed.value));
+        }
     }
 }
 
@@ -52,6 +62,7 @@ function stop() {
             <button @click="witch.step">↷ Step</button>
             <button @click="run">▶ Run</button>
             <button @click="stop">⏹ Stop</button>
+            Speed: <input type="range" min="1" max="100" v-model="speed" class="slider">
         </div>
         <StoresView class="stores" v-model="witch.stores" />
     </div>
@@ -80,6 +91,25 @@ button.active {
     background: var(--amber-strong);
     border-color: var(--amber-strong);
     color: #1a1200;
+}
+
+.slider {
+    appearance: none;
+    background: var(--paper-raised);
+    border: 3px solid var(--rule);
+    height: 1px;
+    vertical-align: middle;
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 10px;
+    height: 15px;
+    background: #04AA6D;
+    cursor: pointer;
+    background: var(--amber-strong);
+
 }
 
 input {
