@@ -47,7 +47,7 @@ export class Witch {
   currentOrderSource: Address; // Where the current Order was loaded from
 
   orderSource: Address; // --- Order source: which reader or store is supplying orders (I.9). ---
-  signTest: boolean = false; // --- Sign test flag (I.8): null until the first 011/012 order runs. ---
+  signTest: boolean | undefined = undefined; // --- Sign test flag (I.8): null until the first 011/012 order runs. ---
 
   shift: Shift = Shift.B; // --- Shift (I.12): pending, consumed by the next 1/3/7 order. ---
   layout: Layout = 1; // --- Print/punch layout (I.11): must be set before any output. ---
@@ -101,7 +101,12 @@ export class Witch {
         if (o.startsWith("021")) {
           this.orderSource = addr;
         } else if (o.startsWith("022")) {
-          if (this.signTest) this.orderSource = addr;
+          if (this.signTest == undefined) {
+            this.status = RunStatus.STOPPED;
+            this.alarm = true; //TODO is this correct?
+          } else if (this.signTest) {
+            this.orderSource = addr;
+          }
         } else {
           //TODO ERROR
         }
@@ -134,8 +139,11 @@ export class Witch {
           if (order == 4) this.clear(ss);
           break;
         case 5:
-          //TODO Check Overflow
           let mr = multiply(this.accumulator.value, this.read(ss), this.read(rr));
+          if (mr.overflow) {
+            this.status = RunStatus.STOPPED;
+            this.alarm = true; //TODO is this correct?
+          }
           this.accumulator.value = mr.accumulator;
           this.stores.write(rr, mr.multiplier);
           break;
@@ -204,6 +212,10 @@ export class Witch {
         break;
       default:
         let ar = this.stores.read(address).add(value, this.consumeShiftAsExponent());
+        if (ar.overflow) {
+          this.status = RunStatus.STOPPED;
+          this.alarm = true; //TODO is this correct?
+        }
         this.stores.write(address, ar.result);
         break;
     }

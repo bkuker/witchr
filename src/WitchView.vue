@@ -12,7 +12,7 @@ async function run() {
     witch.value.status = RunStatus.RUNNING
     while (witch.value.status == RunStatus.RUNNING) {
         witch.value.step();
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 10));
     }
 }
 
@@ -41,8 +41,8 @@ function stop() {
             <lamp color="#ff0000" :value="witch.alarm" />
 
             Sign:
-            <lamp color="#00ff00" :value="witch.signTest" />
-            <lamp color="#ff0000" :value="!witch.signTest" />
+            <lamp color="#00ff00" :value="witch.signTest === true" />
+            <lamp color="#ff0000" :value="witch.signTest === false" />
         </div>
         <div class="controls">
             Acc: <input size="16" v-model.lazy="witch.accumulator.asString" />
