@@ -211,11 +211,11 @@ export class Witch {
 
   readOrder(address: Address): Order {
     if (address >= 1 && address <= 4) {
-      const tape = this.tapes.tapes[this.orderSource - 1];
+      const tape = this.tapes.tapes[address - 1];
       tape.advance();
       let w = tape.current();
       if (!(w instanceof Order)) {
-        throw "Read non Order from tape";
+        throw `Read non Order from tape ${address}: ${w?.constructor.name}`;
       }
       return w;
     } else if (address >= 10 && address <= 99) {
@@ -229,11 +229,14 @@ export class Witch {
     if (address == 0) {
       return Math.random() < 0.5 ? Word.zero() : RANDOM_ONE;
     } else if (address >= 1 && address <= 4) {
-      const tape = this.tapes.tapes[this.orderSource - 1];
+      const tape = this.tapes.tapes[address - 1];
       tape.advance();
       let w = tape.current();
+      if (w instanceof Order) {
+        return w.word;
+      }
       if (!(w instanceof Word)) {
-        throw "Read non word from tape";
+        throw `Read non word from tape ${address}`;
       }
       return w;
     } else if (address < 8) {

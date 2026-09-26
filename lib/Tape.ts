@@ -55,7 +55,7 @@ export class Tape {
   constructor(lines: readonly string[], mode: TapeMode = TapeMode.Straight) {
     // Trimming also drops the stray '\r' left over from Windows line endings.
 
-    this.lines = lines.map((line) => line.replace(/(?:\/\/|#|;).*$/, "").trim()).filter((line) => line !== "");
+    this.lines = lines.map((line) => line.replace(/(?:\/\/|;).*$/, "").trim()).filter((line) => line !== "");
     this.mode = mode;
     this.position = this.lines.length > 0 ? 0 : undefined;
   }
@@ -77,6 +77,8 @@ export class Tape {
     if (str.startsWith("+") || str.startsWith("-") || str.startsWith("*")) {
       return Word.fromString(str);
     } else if (/^\[\d\]$/.test(str)) {
+      return new BlockMarker(parseInt(str[1]) as Digit);
+    } else if (/^#\d$/.test(str)) {
       return new BlockMarker(parseInt(str[1]) as Digit);
     } else if (/^\d{5}$/.test(str)) {
       return new Order(Word.fromString(str));

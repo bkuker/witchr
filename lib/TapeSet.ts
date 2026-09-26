@@ -133,6 +133,9 @@ interface Section extends TapeHeader {
 const TAPE_HEADER = /^tape\s*(\d+)\s*\(\s*(straight|looped)\s*\)$/i;
 /** `PTR2`: number only. */
 const PTR_HEADER = /^ptr\s*(\d+)$/i;
+/** Dave Norman Style Header */
+const NORMAN_HEADER = /^==tape$/i;
+let NORMAN_COUNT = 1;
 
 /** Read a (trimmed) line as a tape header, or `undefined` if it isn't one. */
 function parseHeader(line: string): TapeHeader | undefined {
@@ -145,6 +148,11 @@ function parseHeader(line: string): TapeHeader | undefined {
   const ptr = PTR_HEADER.exec(line);
   if (ptr) {
     return { number: Number(ptr[1]), mode: TapeMode.Straight };
+  }
+
+  const norman = NORMAN_HEADER.exec(line);
+  if (norman) {
+    return { number: NORMAN_COUNT++, mode: TapeMode.Looped };
   }
 
   return undefined;

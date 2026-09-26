@@ -7,10 +7,8 @@
 ; 30 = tmp
 ; 40 = count (down from 20)
 
-==tape
-
-#1
-
+tape1(straight)
+[1]
 ; Load data
 21000
 10110
@@ -29,9 +27,8 @@
 02102
 
 
-==tape
-
-#2
+tape2(looped)
+[2]
 
 ; Print X(n)
 07400

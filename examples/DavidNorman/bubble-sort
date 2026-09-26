@@ -53,17 +53,17 @@
 ; @40 = 2xx00: clear destination
 24000
 10240
-26000
+*26000
 
 ; @41 = 109xx: store 09 -> destination
 24100
 10241
-10960
+*10960
 
 ; @42 = 02102: return to main program
 24200
 10242
-02102
+*02102
 
 ; 97 contains loop counter (counting down)
 29700
@@ -113,37 +113,37 @@
 ; @40 = 1xx09: indirect load array[n]
 24000
 10240
-16009
+*16009
 
 ; @41 = 3yy09: subtract so 09 = array[n] - array[n+1]
 24100
 10241
-36109
+*36109
 
 ; @42 = 01109: compare negative
 24200
 10242
-01109
+*01109
 
 ; @43 = 02202: conditional return to main program
 24300
 10243
-02202
+*02202
 
 ; @44 = 309xx: new array[n] = array[n] - (array[n] - array[n+1])
 24400
 10244
-30960
+*30960
 
 ; @45 = 109yy: new array[n+1] = array[n+1] + (array[n] - array[n+1])
 24500
 10245
-10961
+*10961
 
 ; @46 = 02102: return to main program
 24600
 10246
-02102
+*02102
 
 
 #5
@@ -183,12 +183,12 @@
 ; @40 = 1xx09: store source -> 09
 24000
 10240
-16009
+*16009
 
 ; @41 = 02102
 24100
 10241
-02102
+*02102
 
 ; 97 contains loop counter (counting down)
 29700
