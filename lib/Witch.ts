@@ -3,7 +3,7 @@ import { Console } from "./Console";
 import { Printer } from "./Printer";
 import { Stores } from "./Stores";
 import { Order } from "./Tape";
-import { TapeSet } from "./TapeSet";
+import { TAPE_COUNT, TapeSet } from "./TapeSet";
 import { Timer } from "./Timer";
 import { fail, checkInt, type Address, type Layout, toAddress } from "./types";
 import { Word, DWord, multiply, divide } from "./word";
@@ -223,7 +223,7 @@ export class Witch {
   }
 
   readOrder(address: Address): Order {
-    if (address >= 1 && address <= 4) {
+    if (address >= 1 && address <= TAPE_COUNT) {
       const tape = this.tapes.tapes[address - 1];
       tape.advance();
       let w = tape.current();
@@ -241,7 +241,7 @@ export class Witch {
   read(address: Address): Word {
     if (address == 0) {
       return Math.random() < 0.5 ? Word.zero() : RANDOM_ONE;
-    } else if (address >= 1 && address <= 4) {
+    } else if (address >= 1 && address <= TAPE_COUNT) {
       const tape = this.tapes.tapes[address - 1];
       tape.advance();
       let w = tape.current();
