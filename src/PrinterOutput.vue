@@ -5,7 +5,7 @@ const model = defineModel<string>({ required: true });
 </script>
 <template>
   <div>
-    <textarea cols="80" rows="34" readonly="true">{{ model }}</textarea>
+    <textarea cols="80" rows="31" readonly="true">{{ model }}</textarea>
   </div>
 </template>
 <style scoped>
