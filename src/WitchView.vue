@@ -66,7 +66,10 @@ function stop() {
             Speed: <input type="range" min="1" max="100" v-model="speed" class="slider">
         </div>
         <StoresView class="stores" v-model="witch.stores" />
-        <VectorScope :data="witch.printer1.text" :viewbox="2" />
+        <div class="scope">
+            <VectorScope :data="witch.printer1.text" :viewbox="2" />
+        </div>
+
     </div>
 </template>
 <style>
@@ -131,6 +134,7 @@ input {
     grid-template-areas:
         "title title"
         "tapes printout"
+        "scope printout"
         "status status"
         "controls controls"
         "stores stores";
@@ -140,6 +144,11 @@ input {
 
 div.title {
     grid-area: title;
+}
+
+.scope {
+    grid-area: scope;
+    padding: 3em;
 }
 
 .printer {

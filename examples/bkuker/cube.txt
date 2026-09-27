@@ -1,3 +1,19 @@
+WITCH 3D Graphics Program
+
+Tape 1: Setup & Edge printout
+Tape 2: Vector * Matrix multiplication
+Tape 3: 16 element matrix - model and projection in one
+Tape 4: Wirefram 3d model
+        Block 1: Number of verticies V followed by 3*V XYZ triples
+        Block 2: Number of edges E followed by 2*E vertex index pairs
+
+Output:
+    V X,Y Pairs, one pair per line
+    blank lines
+    E A,B pairs, edge pairs, indexes into Vertex list
+
+Draw & label verticies on graph paper, numbering from ZERO
+For each edge pair, connect vertex A to vertex B with a ruler
 
 ; Main Program
 tape1(looped)
