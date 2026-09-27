@@ -15,6 +15,8 @@ Output:
 Draw & label verticies on graph paper, numbering from ZERO
 For each edge pair, connect vertex A to vertex B with a ruler
 
+TODO I GOT MY GROUPS ALL FUCKED UP
+
 ; Main Program
 tape1(looped)
 [1]     ;Load Matrix into 11-14,21-24,31-34,41-44 (ones based indices)
@@ -60,8 +62,8 @@ tape1(looped)
 03104   ;Search tape 4 block 1
 29900   ; Clear 99
 10499   ; Load vertex count from tape 4 into 99
-29800   ; Clear 98
-10198   ; load constant 0.01 to 98
+28900   ; Clear 89
+10189   ; load constant 0.01 to 89
 *00100
 
 ; goto point transform loop
@@ -76,6 +78,7 @@ tape1(looped)
 03204   ;Search tape 4 block 2
 29900   ; Clear 99
 10499   ; Load edge count from tape 4 into 99
+38999   ; Decrement count
 
 [3]
 ;Print
@@ -84,7 +87,7 @@ tape1(looped)
 07800
 10401
 
-39899   ; Decrement count
+38999   ; Decrement count
 01199   ; Is it positive?
 05301   ;   If so search tape 1 block 3
 00100   ; Else Finish
@@ -106,48 +109,48 @@ tape2(looped)
 22900   ; y
 23900   ; z
         ; Clear temporary inputs (multiply zeros them)
-21800   ; x
-22800   ; y
-23800   ; z
+28100   ; x
+28200   ; y
+28300   ; z
 
 
 ;;;;;;;;;;;; Calc w
         ; Load temporary inputs
-11018
-12028
-13038
+11081
+12082
+13083
         ; 39 = (41 * 18) + (42 * 28) + (43 * 38) + 44, // clip w
-54118
-54228
-54338
+54181
+54282
+54383
 14409
 20939   ;acc -> 39
 
 ;;;;;;;;;;;; Calc X
         ; Load temporary inputs
-11018
-12028
-13038
+11081
+12082
+13083
         ; 19 = (11 * 18) + (12 * 28) + (13 * 38) + 14, // clip x
-51118
-51228
-51338
+51181
+51282
+51383
 11409
 63919
 ;20919   ;acc -> 19
 
 ;;;;;;;;;;;; Calc Y
         ; Load temporary inputs
-11018
-12028
-13038
+11081
+12082
+13083
         ; 29 = (21 * 18) + (22 * 28) + (23 * 38) + 24, // clip y
-52118
-52228
-52338
+52181
+52282
+52383
 12409
 63929
-;20929   ;acc -> 29
+
 
 
 
@@ -157,7 +160,7 @@ tape2(looped)
 07400
 12901
 
-39899   ; Decrement count
+38999   ; Decrement count
 01299   ; Is it negative?
 05201   ;   If so search tape 1 block 2
 02201   ;   If so go to tape 1

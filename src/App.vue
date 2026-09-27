@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, shallowRef, type Ref } from "vue";
-import { Witch } from "@lib/WITCH";
+import { Witch } from "@lib/Witch";
 import WitchView from "./WitchView.vue";
 
 const witch = ref(new Witch()) as Ref<Witch>;
@@ -45,7 +45,7 @@ main {
   margin: 1rem auto;
   padding: 1rem;
   line-height: 1.5;
-  width: 1500px;
+  width: 1300px;
   background-color: #111;
   border-radius: 10px;
 }

@@ -15,13 +15,12 @@ const viewBoxStr = computed(() => {
   return `${-v} ${-v} ${v * 2} ${v * 2}`
 })
 
-// Dot radii and blur spread are in user-space units, so they need to
-// shrink/grow along with the viewbox to stay visually consistent.
-// These base sizes are tuned for viewbox=10.
+// Vertex dot radius is in user-space units, so it needs to shrink/grow
+// along with the viewbox to stay visually consistent. Base size below
+// is tuned for viewbox=10. Grid spacing is NOT scaled — 0.1 always
+// means 0.1 in the actual coordinate system, same as the plotted data.
 const scale = computed(() => props.viewbox / 10)
-const glowDotR = computed(() => 0.09 * scale.value)
 const dotR = computed(() => 0.045 * scale.value)
-const glowBlur = computed(() => 0.18 * scale.value)
 
 type Point = [number, number]
 type Edge = [number, number]
@@ -102,24 +101,27 @@ const segments = computed<Segment[]>(() => {
   <div class="scope">
     <svg :viewBox="viewBoxStr" preserveAspectRatio="xMidYMid meet">
       <defs>
-        <filter id="scope-glow" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur :stdDeviation="glowBlur" result="blur" />
-          <feMerge>
-            <feMergeNode in="blur" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
+        <!-- fine ruling every 0.1 unit -->
+        <pattern id="minorGrid" width="0.1" height="0.1" patternUnits="userSpaceOnUse">
+          <path d="M 0.1 0 L 0 0 0 0.1" fill="none" stroke="#a9c9e8" stroke-width="1"
+            vector-effect="non-scaling-stroke" />
+        </pattern>
+        <!-- bolder ruling every 1.0 unit, layered on top of the fine grid -->
+        <pattern id="majorGrid" width="1" height="1" patternUnits="userSpaceOnUse">
+          <rect width="1" height="1" fill="url(#minorGrid)" />
+          <path d="M 1 0 L 0 0 0 1" fill="none" stroke="#7fa8d9" stroke-width="1.6"
+            vector-effect="non-scaling-stroke" />
+        </pattern>
       </defs>
+
+      <!-- paper -->
+      <rect :x="-viewbox" :y="-viewbox" :width="viewbox * 2" :height="viewbox * 2" fill="#faf6ec" />
+      <!-- ruling -->
+      <rect :x="-viewbox" :y="-viewbox" :width="viewbox * 2" :height="viewbox * 2" fill="url(#majorGrid)" />
 
       <!-- flips y so +y renders at the top, since SVG's native y grows downward -->
       <g transform="scale(1,-1)">
-        <g class="glow-layer" filter="url(#scope-glow)">
-          <line v-for="(seg, idx) in segments" :key="'glow-line-' + idx" :x1="seg.x1" :y1="seg.y1" :x2="seg.x2"
-            :y2="seg.y2" vector-effect="non-scaling-stroke" />
-          <circle v-for="(p, idx) in points" :key="'glow-pt-' + idx" :cx="p[0]" :cy="p[1]" :r="glowDotR" />
-        </g>
-
-        <g class="line-layer">
+        <g class="pencil-layer">
           <line v-for="(seg, idx) in segments" :key="'line-' + idx" :x1="seg.x1" :y1="seg.y1" :x2="seg.x2" :y2="seg.y2"
             vector-effect="non-scaling-stroke" />
           <circle v-for="(p, idx) in points" :key="'pt-' + idx" :cx="p[0]" :cy="p[1]" :r="dotR" />
@@ -133,7 +135,6 @@ const segments = computed<Segment[]>(() => {
 .scope {
   width: 100%;
   aspect-ratio: 1 / 1;
-  background: #000;
 }
 
 svg {
@@ -142,26 +143,17 @@ svg {
   height: 100%;
 }
 
-.glow-layer line {
-  stroke: #22ff77;
-  stroke-width: 3px;
-  opacity: 0.5;
-}
-
-.glow-layer circle {
-  fill: #22ff77;
-  opacity: 0.5;
-}
-
-.line-layer line {
-  stroke: #7dffb0;
-  stroke-width: 1.3px;
+.pencil-layer line {
+  stroke: #4b4b4b;
+  stroke-width: 1.5px;
   stroke-linecap: round;
   fill: none;
+  opacity: 0.85;
 }
 
-.line-layer circle {
-  fill: #e8fff0;
+.pencil-layer circle {
+  fill: #3f3f3f;
   stroke: none;
+  opacity: 0.85;
 }
 </style>

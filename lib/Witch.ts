@@ -127,6 +127,16 @@ export class Witch {
       const order = Number.parseInt(o.charAt(0));
       const ss = toAddress(o.substring(1, 3));
       const rr = toAddress(o.substring(3, 5));
+
+      //TODO CHECK STORE GROUP RULES
+
+      let gs = Math.floor(ss / 10);
+      let gr = Math.floor(rr / 10);
+
+      if (gs == gr && gs >= 1) {
+        console.error(`Illegal operand combination ${ss} & ${rr}`);
+      }
+
       switch (order) {
         case 1:
         case 2:

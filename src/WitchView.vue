@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { Witch, RunStatus } from "@lib/WITCH.ts";
+import { Witch, RunStatus } from "@lib/Witch.ts";
 import TapeSetView from "./TapeSetView.vue";
 import StoresView from "./StoresView.vue";
 import PrinterOutput from "./PrinterOutput.vue";
@@ -16,7 +16,14 @@ async function run() {
     let count = 0;
     while (witch.value.status == RunStatus.RUNNING) {
         count++;
-        witch.value.step();
+        try {
+            witch.value.step();
+        } catch (e) {
+            console.error(e);
+            console.log("wtf");
+            witch.value.status = RunStatus.STOPPED;
+            return;
+        }
         if (speed.value == 100) {
             if (count % 500 == 0) {
                 await new Promise(resolve => setTimeout(resolve, 0));
@@ -67,7 +74,7 @@ function stop() {
         </div>
         <StoresView class="stores" v-model="witch.stores" />
         <div class="scope">
-            <VectorScope :data="witch.printer1.text" :viewbox="2" />
+            <VectorScope :data="witch.printer1.text" :viewbox="1" />
         </div>
 
     </div>
@@ -148,7 +155,7 @@ div.title {
 
 .scope {
     grid-area: scope;
-    padding: 3em;
+    padding: 2em;
 }
 
 .printer {
