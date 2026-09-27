@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>3D Wireframe Cube — Matrix + Perspective Divide</title>
+    <style>
+      :root {
+        --bg: #0b0c10;
+        --panel: #14161c;
+        --line: #6cf2c1;
+        --text: #cfd8dc;
+        --accent: #8ab4ff;
+      }
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        padding: 16px;
+        box-sizing: border-box;
+        padding-top: calc(16px + env(safe-area-inset-top, 0px));
+        padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+      }
+      h1 {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--accent);
+        margin: 4px 0 0 0;
+      }
+      #wrap {
+        width: 100%;
+        max-width: 560px;
+        background: var(--panel);
+        border-radius: 12px;
+        padding: 12px;
+        box-sizing: border-box;
+      }
+      canvas {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 1 / 1;
+        display: block;
+        background: #05060a;
+        border-radius: 8px;
+      }
+      p {
+        max-width: 560px;
+        font-size: 0.85rem;
+        line-height: 1.4;
+        color: #9aa4ac;
+        margin: 0;
+      }
+      code {
+        color: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <h1>2×2×2 cube — one matrix + one perspective divide</h1>
+    <div id="wrap">
+      <canvas id="c" width="600" height="600"></canvas>
+    </div>
+    <p>
+      Each frame: every point goes through <code>P · T · R</code> (rotation, then translate away from the camera, then perspective
+      projection) as a single 4×4 matrix multiply. That gives clip-space (x, y, z, w). Then, separately, x/w and y/w is computed — the one
+      non-matrix step — to land in −1..1 space before mapping to pixels.
+    </p>
+
+    <script>
+      // ---------------------------------------------------------------
+      // Matrices are plain 2D arrays: m[row][col]. Vectors are length-4
+      // arrays [x, y, z, w] and are treated as column vectors, so
+      // transforming a point is "matrix * vector".
+      // ---------------------------------------------------------------
+
+      function multiplyMatrices(a, b) {
+        // Returns a*b, both 4x4.
+        const result = [];
+        for (let r = 0; r < 4; r++) {
+          result.push([]);
+          for (let c = 0; c < 4; c++) {
+            let sum = 0;
+            for (let k = 0; k < 4; k++) sum += a[r][k] * b[k][c];
+            result[r].push(sum);
+          }
+        }
+        return result;
+      }
+
+      function multiplyMatrixVector(m, p) {
+        // p is a 3-element point [x, y, z]; w is implicitly 1.
+        // Returns only [clipX, clipY, clipW] — the z row is never computed
+        // because clip-space z is never used when just drawing lines.
+        const [x, y, z] = p;
+        return [
+          m[0][0] * x + m[0][1] * y + m[0][2] * z + m[0][3], // clip x
+          m[1][0] * x + m[1][1] * y + m[1][2] * z + m[1][3], // clip y
+          m[3][0] * x + m[3][1] * y + m[3][2] * z + m[3][3], // clip w
+        ];
+      }
+
+      function identity() {
+        return [
+          [1, 0, 0, 0],
+          [0, 1, 0, 0],
+          [0, 0, 1, 0],
+          [0, 0, 0, 1],
+        ];
+      }
+
+      function rotateY(angle) {
+        const s = Math.sin(angle),
+          c = Math.cos(angle);
+        return [
+          [c, 0, s, 0],
+          [0, 1, 0, 0],
+          [-s, 0, c, 0],
+          [0, 0, 0, 1],
+        ];
+      }
+
+      function rotateX(angle) {
+        const s = Math.sin(angle),
+          c = Math.cos(angle);
+        return [
+          [1, 0, 0, 0],
+          [0, c, -s, 0],
+          [0, s, c, 0],
+          [0, 0, 0, 1],
+        ];
+      }
+
+      function translate(tx, ty, tz) {
+        return [
+          [1, 0, 0, tx],
+          [0, 1, 0, ty],
+          [0, 0, 1, tz],
+          [0, 0, 0, 1],
+        ];
+      }
+
+      function perspective(fovYRadians, aspect, near, far) {
+        // Standard right-handed perspective matrix, looking down -Z.
+        // After this, w ends up equal to -z_view (the point's depth),
+        // which is exactly the value we divide by afterward.
+        const f = 1 / Math.tan(fovYRadians / 2);
+        return [
+          [f / aspect, 0, 0, 0],
+          [0, f, 0, 0],
+          [0, 0, (far + near) / (near - far), (2 * far * near) / (near - far)],
+          [0, 0, -1, 0],
+        ];
+      }
+
+      // ---------------------------------------------------------------
+      // Geometry: a 2x2x2 cube centered on the origin, corners at ±1,
+      // plus the word WITCH sitting on the front face (z = 1.02, just
+      // proud of the z = 1 face) as ordinary points and edges appended
+      // to the same two arrays.
+      // ---------------------------------------------------------------
+
+      const points = [
+        // cube corners: indices 0-7
+        [-1, -1, -1],
+        [1, -1, -1],
+        [1, 1, -1],
+        [-1, 1, -1],
+        [-1, -1, 1],
+        [1, -1, 1],
+        [1, 1, 1],
+        [-1, 1, 1],
+
+        // W: indices 8-12 (scaled 65% toward its own center, -0.76)
+        [-0.877, 0.195, 1.02],
+        [-0.819, -0.195, 1.02],
+        [-0.76, 0.0, 1.02],
+        [-0.702, -0.195, 1.02],
+        [-0.643, 0.195, 1.02],
+
+        // I: indices 13-18 (scaled 65% toward its own center, -0.38)
+        [-0.465, 0.195, 1.02], // top-left
+        [-0.296, 0.195, 1.02], // top-right
+        [-0.38, 0.195, 1.02], // stem top
+        [-0.38, -0.195, 1.02], // stem bottom
+        [-0.465, -0.195, 1.02], // bottom-left
+        [-0.296, -0.195, 1.02], // bottom-right
+
+        // T: indices 19-22 (scaled 65% toward its own center, 0.00)
+        [-0.117, 0.195, 1.02], // bar left
+        [0.117, 0.195, 1.02], // bar right
+        [0.0, 0.195, 1.02], // stem top
+        [0.0, -0.195, 1.02], // stem bottom
+
+        // C: indices 23-26 (scaled 65% toward its own center, 0.38)
+        [0.497, 0.195, 1.02], // top-right
+        [0.263, 0.195, 1.02], // top-left
+        [0.263, -0.195, 1.02], // bottom-left
+        [0.497, -0.195, 1.02], // bottom-right
+
+        // H: indices 27-32 (scaled 65% toward its own center, 0.76)
+        [0.643, -0.195, 1.02], // left stem bottom
+        [0.643, 0.195, 1.02], // left stem top
+        [0.877, -0.195, 1.02], // right stem bottom
+        [0.877, 0.195, 1.02], // right stem top
+        [0.643, 0.0, 1.02], // crossbar left
+        [0.877, 0.0, 1.02], // crossbar right
+      ];
+
+      const edges = [
+        [0, 1],
+        [1, 2],
+        [2, 3],
+        [3, 0], // back face
+        [4, 5],
+        [5, 6],
+        [6, 7],
+        [7, 4], // front face
+        [0, 4],
+        [1, 5],
+        [2, 6],
+        [3, 7], // connecting edges
+
+        // W
+        [8, 9],
+        [9, 10],
+        [10, 11],
+        [11, 12],
+
+        // I
+        [13, 14],
+        [15, 16],
+        [17, 18],
+
+        // T
+        [19, 20],
+        [21, 22],
+
+        // C — exactly three straight lines
+        [23, 24],
+        [24, 25],
+        [25, 26],
+
+        // H
+        [27, 28],
+        [29, 30],
+        [31, 32],
+      ];
+
+      // ---------------------------------------------------------------
+      // Rendering
+      // ---------------------------------------------------------------
+
+      const canvas = document.getElementById("c");
+      const ctx = canvas.getContext("2d");
+      const W = canvas.width;
+      const H = canvas.height;
+
+      let angle = 0;
+
+      function frame() {
+        //angle += 0.008; // "a little" rotation per frame
+
+        // Build the combined matrix once per frame: projection * translate * rotation.
+        // Applied to a point v, this computes P * (T * (R * v)) — i.e. rotate the
+        // cube about its own center first, push it away from the camera, then project.
+        const rot = multiplyMatrices(rotateX(0.15), rotateY(0.45));
+        const tran = translate(0, 0, -5); // push cube 5 units in front of the camera
+        const proj = perspective(Math.PI / 5, 1, 0.1, 10); // ~36 degree vertical FOV: "a little" perspective
+
+        let combined = multiplyMatrices(tran, rot);
+        combined = multiplyMatrices(proj, combined);
+
+        console.log(JSON.stringify(combined, null, 3));
+
+        // Transform every point, then do the perspective divide, then map to pixels.
+        // This is the "second array": screen-space points ready to draw.
+        const screenPoints = points.map(([x, y, z]) => {
+          const [clipX, clipY, clipW] = multiplyMatrixVector(combined, [x, y, z]);
+
+          // --- the one non-matrix step ---
+          const ndcX = clipX / clipW;
+          const ndcY = clipY / clipW;
+
+          // Viewport transform: NDC (-1..1) -> pixels, flipping Y (canvas Y grows downward).
+          const screenX = (ndcX * 0.5 + 0.5) * W;
+          const screenY = (1 - (ndcY * 0.5 + 0.5)) * H;
+          return [screenX, screenY];
+        });
+
+        // Draw.
+        ctx.clearRect(0, 0, W, H);
+        ctx.strokeStyle = "#6cf2c1";
+        ctx.lineWidth = 2;
+        ctx.lineJoin = "round";
+
+        for (const [a, b] of edges) {
+          const [ax, ay] = screenPoints[a];
+          const [bx, by] = screenPoints[b];
+          ctx.beginPath();
+          ctx.moveTo(ax, ay);
+          ctx.lineTo(bx, by);
+          ctx.stroke();
+        }
+
+        // Small dots at the cube's corners only (indices 0-7), for clarity.
+        ctx.fillStyle = "#8ab4ff";
+        for (let i = 0; i < 8; i++) {
+          const [x, y] = screenPoints[i];
+          ctx.beginPath();
+          ctx.arc(x, y, 3, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        //requestAnimationFrame(frame);
+      }
+
+      requestAnimationFrame(frame);
+    </script>
+  </body>
+</html>

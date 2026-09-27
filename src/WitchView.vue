@@ -5,6 +5,7 @@ import TapeSetView from "./TapeSetView.vue";
 import StoresView from "./StoresView.vue";
 import PrinterOutput from "./PrinterOutput.vue";
 import Lamp from "./Lamp.vue";
+import VectorScope from "./VectorScope.vue";
 
 const witch = defineModel<Witch>({ required: true });
 
@@ -65,6 +66,7 @@ function stop() {
             Speed: <input type="range" min="1" max="100" v-model="speed" class="slider">
         </div>
         <StoresView class="stores" v-model="witch.stores" />
+        <VectorScope :data="witch.printer1.text" :viewbox="2" />
     </div>
 </template>
 <style>
