@@ -73,7 +73,7 @@ function stop() {
             Speed: <input type="range" min="1" max="100" v-model="speed" class="slider">
         </div>
         <StoresView class="stores" v-model="witch.stores" />
-        <div class="scope">
+        <div v-if="false" class="scope">
             <VectorScope :data="witch.printer1.text" :viewbox="1" />
         </div>
 

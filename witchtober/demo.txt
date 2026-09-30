@@ -1,0 +1,20 @@
+tape1(straight)
+[1]             ;Block 1
+
+21000           ; Clear addr 10
+10110           ; Read word from tape1 into addr 10
++0.0000001
+
+22000
+11020
+
+07400           ; Set print format to +-D.DDDDDDD\n
+
+03102           ; Search tape 2 for block 1
+02102           ; Transfer control to tape 2
+
+tape2(looped)
+[1]
+12001           ; Print value at addr 20
+11020           ; add value at 10 to value at 20
+03102           ; Search t2 for b1
