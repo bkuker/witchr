@@ -10,6 +10,12 @@ import { Word, DWord, multiply, divide } from "./word";
 
 export type SignDigit = "0" | "9";
 
+declare const console: {
+  log(...args: unknown[]): void;
+  warn(...args: unknown[]): void;
+  error(...args: unknown[]): void;
+};
+
 export enum Shift {
   A = 1,
   B = 2,
