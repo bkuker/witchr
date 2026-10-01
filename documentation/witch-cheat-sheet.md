@@ -18,6 +18,7 @@ Terse reminders only. Full story → `witch-order-reference.md`.
 | `6` | Divide | `src,dest ∉ 00-09`; `dest==0`; `acc≠+0` | `dest = acc/src; acc = remainder` |
 | `7` | Modulus, hold only | diff. group (or 00-09 exc.) | `dest += abs(src)` |
 
+- Different Group: ss & rr may not have the same first digit. Exceptions for 00-09 below.
 - `|result| >= 10` → stop.
 - Negative multiplier: can transiently overflow even when the true product fits.
 - Divide: no cap on attempts — oversized quotient just runs long, alarm eventually.
