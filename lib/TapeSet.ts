@@ -46,6 +46,10 @@ export class TapeSet {
     this.tapes = Array.from({ length: TAPE_COUNT }, (_, i) => tapes[i] ?? new Tape([]));
   }
 
+  reset() {
+    this.tapes.forEach((t) => t.reset());
+  }
+
   /**
    * Parse the raw text of a tape file.
    *

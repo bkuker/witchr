@@ -3,7 +3,10 @@ This work is licensed under the Creative Commons
 Attribution-NonCommercial-ShareAlike 4.0 International License
 http://creativecommons.org/licenses/by-nc-sa/4.0/
 
-
+THIS IS A MEMORY IMAGE, NOT A TAPE IMAGE.
+DRAG IT INTO THE STORES SECTION TO LOAD IT INTO MEMMORY.
+YOU WILL HAVE TO CHANGE THE CURRENT ORDER BY HAND TO
+JUMP TO THE CORRECT ENTRY POINT.
 
 WITCH program to find first 20 primes
 -------------------------------------

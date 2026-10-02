@@ -4,6 +4,10 @@ import { Word } from "./word";
 export class Printer {
   text = "";
 
+  reset() {
+    this.text = "";
+  }
+
   print(val: Word, layout: Layout): void {
     let txt = "";
     switch (layout) {

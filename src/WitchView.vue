@@ -70,6 +70,7 @@ function stop() {
             <button @click="witch.step">↷ Step</button>
             <button @click="run">▶ Run</button>
             <button @click="stop">⏹ Stop</button>
+            <button @click="witch.reset">↺ Reset</button>
             Speed: <input type="range" min="1" max="100" v-model="speed" class="slider">
         </div>
         <StoresView class="stores" v-model="witch.stores" />

@@ -325,6 +325,28 @@ export class Witch {
     this._delayedAlarmLives = Witch.MAX_DELAYED_ALARM_LIVES;
   }
 
+  reset() {
+    this.status = RunStatus.STOPPED;
+
+    this.stores.reset();
+    this.tapes.reset();
+    this.printer1.reset();
+
+    this.currentOrder = Order.fromString("03101");
+    this.currentOrderSource = 0;
+    this.orderSource = 1;
+
+    this.signTest = undefined;
+    this.shift = Shift.B;
+    this.layout = 1;
+    this.delayedAlarmLives = 3;
+
+    this.finish = false;
+    this.signal = false;
+    this.alarm = false;
+    this.alarmMode = AlarmMode.NORMAL;
+  }
+
   constructor() {
     // Power-on / restart hardwires these two orders (I.3): search reader 01
     // for block 1, then transfer control to reader 01. Everything else
